@@ -27,22 +27,23 @@ spec:
   sink:
     apiVersion: serving.knative.dev/v1
     kind: Service
-    name: wsservice
+    name: event-display
 ---
 # Service that exposes wseventsource app.
 # This will be the subscriber for the Trigger
-  kind: Service
-  apiVersion: v1
-  metadata:
-    name: wsservice
-    namespace: knative-eventing-websocket-source
-  spec:
-    selector:
-      app: wseventsource
-    ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: event-display
+spec:
+    template:
+      metadata:
+        # annotations:
+        #   autoscaling.knative.dev/target: "2"
+      spec:
+        container:
+          image: gcr.io/knative-releases/github.com/knative/eventing-contrib/cmd/event_display@sha256:1d6ddc00ab3e43634cd16b342f9663f9739ba09bc037d5dea175dc425a1bb955
+
 ---
 # Knative Eventing Trigger to trigger the helloworld-go service
 apiVersion: eventing.knative.dev/v1alpha1
@@ -60,4 +61,4 @@ spec:
     ref:
       apiVersion: v1
       kind: Service
-      name: wseventsource
+      name: event-display
