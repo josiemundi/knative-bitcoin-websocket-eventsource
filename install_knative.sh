@@ -35,4 +35,8 @@ show_knative_status(){
 }
 
 setup_knative
+<<<<<<< HEAD
 show_knative_status
+=======
+show_knative_status
+>>>>>>> 4bccb644647a2765f7c39e41d25122fc8db71727
