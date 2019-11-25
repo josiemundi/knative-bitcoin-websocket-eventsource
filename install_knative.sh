@@ -34,5 +34,5 @@ show_knative_status(){
    kubectl get pods --namespace knative-monitoring
 }
 
-setup_istio
+setup_knative
 show_knative_status
