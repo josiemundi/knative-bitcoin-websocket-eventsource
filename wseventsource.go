@@ -144,5 +144,5 @@ func main() {
 		log.Println("Unable to send: ", err.Error())
 	}
 
-	time.Sleep(time.Second * 2 * 60)
+	time.Sleep(time.Second * 3650)
 }
