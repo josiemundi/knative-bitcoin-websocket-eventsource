@@ -28,7 +28,7 @@ func init() {
 	flag.StringVar(&eventType, "eventType", "dev.knative.samples.wsevent", "the event-type (CloudEvents)")
 	flag.StringVar(&sink, "sink", "http://default-broker.default.svc.cluster.local", "the host url to heartbeat to")
 	flag.StringVar(&label, "label", "", "a special label")
-	flag.StringVar(&periodStr, "period", "5", "the number of seconds between heartbeats")
+	// flag.StringVar(&periodStr, "period", "5", "the number of seconds between heartbeats")
 }
 
 type envConfig struct {
@@ -36,10 +36,10 @@ type envConfig struct {
 	Sink string `envconfig:"SINK"`
 
 	// // Name of this pod.
-	// Name string `envconfig:"POD_NAME" required:"true"`
+	Name string `envconfig:"POD_NAME" required:"true"`
 
 	// // Namespace this pod exists in.
-	// Namespace string `envconfig:"POD_NAMESPACE" required:"true"`
+	Namespace string `envconfig:"POD_NAMESPACE" required:"true"`
 }
 
 func main() {
@@ -62,10 +62,10 @@ func main() {
 		log.Fatalf("failed to create client: %s", err.Error())
 	}
 
-	if eventSource == "" {
-		eventSource = fmt.Sprintf("https://knative.dev/knative-eventing-websocket-source/") //, env.Namespace, env.Name)
-		log.Printf("Heartbeats Source: %s", eventSource)
-	}
+	// if eventSource == "" {
+	// 	eventSource = fmt.Sprintf("https://knative.dev/knative-eventing-websocket-source/") //, env.Namespace, env.Name)
+	// 	log.Printf("Blockchain Source: %s", eventSource)
+	// }
 
 	websocketclient := evtwebsocket.Conn{
 
@@ -93,14 +93,14 @@ func main() {
 			// }
 
 			event := cloudevents.Event{
-				Context: cloudevents.EventContextV03{
+				Context: cloudevents.EventContextV02{
 					Type:   eventType,
 					Source: *types.ParseURLRef(eventSource),
 				}.AsV02(),
 				Data: msg,
 			}
 
-			//should this be c.StartReceiver?
+
 			if _, _, err := c.Send(context.Background(), event); err != nil {
 				log.Printf("failed to send cloudevent: %s", err.Error())
 			}
