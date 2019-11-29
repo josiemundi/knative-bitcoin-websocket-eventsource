@@ -5,6 +5,8 @@ kind: Service
 metadata:
   name: event-display
   namespace: knative-eventing-websocket-source
+  labels:
+   serving.knative.dev/visibility: cluster-local
 spec:
   template:
     spec:

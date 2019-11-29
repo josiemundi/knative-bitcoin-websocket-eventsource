@@ -15,7 +15,16 @@ spec:
     spec:
       containers:
         - name: wseventsource
-          image: docker.io/josiemundi/wssource
+          image: docker.io/josiemundi/wseventsourcelong
           env:
           - name: SINK
             value: "http://default-broker.knative-eventing-websocket-source.svc.cluster.local"
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+                 

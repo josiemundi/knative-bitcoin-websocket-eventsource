@@ -15,11 +15,13 @@ In order to run this demo, you will need:
 
 To install Istio, I am currently following the instructions below:
 
-https://istio.io/docs/setup/getting-started/#download
+https://knative.dev/docs/install/installing-istio/
 
 Then run the following command in order to enable Istio in the default (or alternative) namespace:
 
 ```kubectl label namespace <namespace> istio-injection=enabled```
+
+I had a lot of issues getting this demo up and running. Finally I realised that I needed to add the cluster local gateway to my Istio installation. This is not installed as standard in the Knative instructions but is mentioned further down the page. 
 
 
 ## Installing Knative 
@@ -34,3 +36,18 @@ To confirm your install is complete, you can run the following command:
 ```kubectl get pods --all-namespaces```
 
 You should have namespaces for ```istio-system```, ```knative-eventing```, ```knative-serving``` (and ```knative-monitoring``` if you have installed using the install script).
+
+## Run the yaml scripts
+
+There are 4 main yaml scripts that need to be run to get this tutorial working. 
+
+First ```kubectl apply -f 001-namespace.yaml``` This will deploy the knative-eventing-websocket-source namespace and enable the knative-eventing injection. 
+
+The run the following:
+
+```kubectl apply -f 010-deployment.yaml```
+
+```kubectl apply - 040-trigger.yaml```
+
+```kubectl apply - 030-service.yaml```
+
