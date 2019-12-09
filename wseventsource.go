@@ -2,146 +2,74 @@ package main
 
 import (
 	"context"
-	"flag"
-	"fmt"
-	"log"
-	"os"
-	"time"
-
-	cloudevents "github.com/cloudevents/sdk-go"
-	"github.com/cloudevents/sdk-go/pkg/cloudevents/types"
+	"github.com/cloudevents/sdk-go"
+	"github.com/gorilla/websocket"
 	"github.com/kelseyhightower/envconfig"
-	"github.com/rgamba/evtwebsocket"
-	"knative.dev/eventing-contrib/pkg/kncloudevents"
+	"log"
 )
 
-var (
-	eventSource string
-	eventType   string
-	sink        string
-	label       string
-	periodStr   string
-)
+const source = "wss://ws.blockchain.info/inv"
 
-func init() {
-	flag.StringVar(&eventSource, "eventSource", "", "the event-source (CloudEvents)")
-	flag.StringVar(&eventType, "eventType", "dev.knative.samples.wsevent", "the event-type (CloudEvents)")
-	flag.StringVar(&sink, "sink", "http://default-broker.default.svc.cluster.local", "the host url to heartbeat to")
-	flag.StringVar(&label, "label", "", "a special label")
-}
+var sink string
 
-type envConfig struct {
-	// Sink URL where to send heartbeat cloudevents
+type Config struct {
 	Sink string `envconfig:"SINK"`
-
-	// // Name of this pod.
-	// Name string `envconfig:"POD_NAME" required:"true"`
-
-	// // Namespace this pod exists in.
-	// Namespace string `envconfig:"POD_NAMESPACE" required:"true"`
 }
 
 func main() {
-
-	flag.Parse()
-
-	var env envConfig
-	if err := envconfig.Process("", &env); err != nil {
-		log.Printf("[ERROR] Failed to process env var: %s", err)
-		os.Exit(1)
-	}
-
-	if env.Sink != "" {
-		sink = env.Sink
-	}
-
-	fmt.Println("this is my sink:", sink)
-	c, err := kncloudevents.NewDefaultClient(sink)
+	var config Config
+	err := envconfig.Process("", &config)
 	if err != nil {
-		log.Fatalf("failed to create client: %s", err.Error())
+		log.Fatalf("failed to process env var: %s", err)
 	}
 
-	if eventSource == "" {
-		eventSource = fmt.Sprintf("https://knative.dev/knative-eventing-websocket-source/") //, env.Namespace, env.Name)
-		log.Printf("Blockchain Source: %s", eventSource)
+	if config.Sink != "" {
+		sink = config.Sink
 	}
 
-	websocketclient := evtwebsocket.Conn{
-
-		// When connection is established
-		OnConnected: func(w *evtwebsocket.Conn) {
-			log.Println("Connected")
-		},
-
-		// When a message arrives
-		OnMessage: func(msg []byte, w *evtwebsocket.Conn) {
-			//log.Printf("OnMessage: %s\n", msg)
-			//fmt.Println(msg)
-			fmt.Printf("MESSAGE: %s\n", msg)
-			// var transact Transaction
-			// //data := []byte(msg)
-			// err := json.Unmarshal(msg, &transact)
-			// if err == nil {
-			// 	//fmt.Printf("%s", msg)
-			// 	fmt.Printf("INPUTS:\n")
-			// 	for k, v := range transact.X.Inputs {
-			// 		//fmt.Println(parsed["inputs"])
-			// 		fmt.Println(k, v)
-			// 	}
-			// 	fmt.Println("")
-			// }
-
-			event := cloudevents.Event{
-				Context: cloudevents.EventContextV02{
-					Type:   eventType,
-					Source: *types.ParseURLRef(eventSource),
-				}.AsV02(),
-				Data: msg,
-			}
-
-
-			if _, _, err := c.Send(context.Background(), event); err != nil {
-				log.Printf("failed to send cloudevent: %s", err.Error())
-			}
-		},
-
-		// When the client disconnects for any reason
-		OnError: func(err error) {
-			log.Printf("** ERROR **\n%s\n", err.Error())
-		},
-
-		// This is used to match the request and response messagesP>termina
-		MatchMsg: func(req, resp []byte) bool {
-			return string(req) == string(resp)
-		},
-
-		// Auto reconnect on error
-		Reconnect: true,
-
-		// Set the ping interval (optional)
-		PingIntervalSecs: 5,
-
-		// Set the ping message (optional)
-		PingMsg: []byte("PING"),
+	log.Print("Connecting to sink: ", sink)
+	t, err := cloudevents.NewHTTPTransport(
+		cloudevents.WithTarget(sink),
+	)
+	if err != nil {
+		log.Fatalf("failed to create transport, " + err.Error())
 	}
 
-	// Connect
-	wsErr := websocketclient.Dial("wss://ws.blockchain.info/inv", "")
-	if wsErr != nil {
-		log.Fatal(wsErr)
+	ce, err := cloudevents.NewClient(t,
+		cloudevents.WithUUIDs(),
+		cloudevents.WithTimeNow(),
+	)
+
+	if err != nil {
+		log.Fatalf("unable to create cloudevent client: " + err.Error())
 	}
 
-	outmsg := evtwebsocket.Msg{
-		Body: []byte("{\"op\":\"unconfirmed_sub\"}"),
-		Callback: func(resp []byte, w *evtwebsocket.Conn) {
-			log.Printf("[%d] Callback: %s\n", 0, resp)
-		},
+	log.Print("Connecting to source: ", source)
+	ws, _, err := websocket.DefaultDialer.Dial(source, nil)
+	if err != nil {
+		log.Fatal("error connecting:", err)
 	}
 
-	//err = c.Send(msg)
-	if err := websocketclient.Send(outmsg); err != nil {
-		log.Println("Unable to send: ", err.Error())
+	err = ws.WriteMessage(websocket.TextMessage, []byte("{\"op\":\"unconfirmed_sub\"}"))
+	if err != nil {
+		log.Fatal("failed to send subscribe message", err)
 	}
 
-	time.Sleep(time.Second * 3650)
+	for {
+		_, message, err := ws.ReadMessage()
+		if err != nil {
+			log.Println("error while reading message:", err)
+			return
+		}
+		log.Print(string(message))
+
+		event := cloudevents.NewEvent()
+		event.SetType("websocket-event")
+		event.SetSource(source)
+		event.SetData(message)
+
+		if _, _, err := ce.Send(context.TODO(), event); err != nil {
+			log.Printf("sending event to channel failed: %v", err)
+		}
+	}
 }
