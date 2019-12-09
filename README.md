@@ -94,7 +94,7 @@ to see logs of broker:
 
 to see logs of services:
 
-```kubectl logs -l serving.knative.dev/service=event-display -c user-container --tail==100```
+```kubectl logs -l serving.knative.dev/service=event-display -c user-container --tail==100 -n knative-eventing-websocket-source```
 
 For the event-display logs, you should see something like:
 
