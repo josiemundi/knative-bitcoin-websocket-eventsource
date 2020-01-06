@@ -36,3 +36,5 @@ show_knative_status(){
 
 setup_knative
 show_knative_status
+
+#test
