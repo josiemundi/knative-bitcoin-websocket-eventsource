@@ -6,16 +6,16 @@ set -e
 install_knative_k8s() {
    
    kubectl apply --selector knative.dev/crd-install=true \
-   --filename https://github.com/knative/serving/releases/download/v0.10.0/serving.yaml \
-   --filename https://github.com/knative/eventing/releases/download/v0.10.0/release.yaml \
-   --filename https://github.com/knative/serving/releases/download/v0.10.0/monitoring.yaml
+   --filename https://github.com/knative/serving/releases/download/v0.11.1/serving.yaml \
+   --filename https://github.com/knative/eventing/releases/download/v0.11.0/release.yaml \
+   --filename https://github.com/knative/serving/releases/download/v0.11.1/monitoring.yaml
 
 }
 
 install_knative_eventing_k8s() {
-   kubectl apply --filename https://github.com/knative/serving/releases/download/v0.10.0/serving.yaml \
-   --filename https://github.com/knative/eventing/releases/download/v0.10.0/release.yaml \
-   --filename https://github.com/knative/serving/releases/download/v0.10.0/monitoring.yaml
+   kubectl apply --filename https://github.com/knative/serving/releases/download/v0.11.1/serving.yaml \
+   --filename https://github.com/knative/eventing/releases/download/v0.11.0/release.yaml \
+   --filename https://github.com/knative/serving/releases/download/v0.11.1/monitoring.yaml
 
 }
 
@@ -35,8 +35,4 @@ show_knative_status(){
 }
 
 setup_knative
-<<<<<<< HEAD
 show_knative_status
-=======
-show_knative_status
->>>>>>> 4bccb644647a2765f7c39e41d25122fc8db71727
