@@ -1,4 +1,4 @@
-# Knative Eventing Demo
+# Knative Eventing - Blockchain Event Source
 This project explores Knative Eventing. The aim of the project is to deploy a go application that streams messages to a Knative broker, where a service (event display) can subscribe to the events. The message stream data is from the blockchain.info WebSocket API and sends information about new bitcoin transactions in real-time. You can find more information about this service at the link below:
 
 https://www.blockchain.com/api/api_websocket
