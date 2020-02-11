@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 # Blockchain Transactions Event Streaming
 This project contains the files to build an application that connects to a websocket and streams transaction messages as CloudEvents to a sink. The message stream data is from the blockchain.info WebSocket API and sends information about new bitcoin transactions in real-time. You can find more information about this service at the following [link](https://www.blockchain.com/api/api_websocket).
+=======
+# Knative Eventing - Blockchain Transactions Event Source
+This project explores Knative Eventing. The aim of the project is to deploy a go application that streams messages to a Knative broker, where a service (event display) can subscribe to the events. The message stream data is from the blockchain.info WebSocket API and sends information about new bitcoin transactions in real-time. You can find more information about this service at the link below:
+>>>>>>> d307182454892fb31b36458af8689dd7d86ea1d2
 
 This application is used as part of another [tutorial](https://github.com/josiemundi/knative-web-event-display) on Knative eventing.
 
